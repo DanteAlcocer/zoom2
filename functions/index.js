@@ -1,26 +1,17 @@
-const functions = require('firebase-functions');
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
-
-const functions = require('firebase-functions');
-
-// Acceder a las variables configuradas
-const ZOOM_CLIENT_ID = functions.config().zoom.client_id;
-const ZOOM_CLIENT_SECRET = functions.config().zoom.client_secret;
-const ZOOM_ACCOUNT_ID = functions.config().zoom.account_id;
-const MONGODB_URI = functions.config().mongodb.uri;
-
-// Ejemplo de uso
-console.log('Zoom Client ID:', ZOOM_CLIENT_ID);
-console.log('MongoDB URI:', MONGODB_URI);
-
-
-// Inicializar dotenv para variables de entorno
+// Inicializar dotenv para cargar variables de entorno desde un archivo .env
 dotenv.config();
+
+// Acceder a las variables de entorno configuradas en Vercel
+const ZOOM_CLIENT_ID = process.env.ZOOM_CLIENT_ID;
+const ZOOM_CLIENT_SECRET = process.env.ZOOM_CLIENT_SECRET;
+const ZOOM_ACCOUNT_ID = process.env.ZOOM_ACCOUNT_ID;
+const MONGODB_URI = process.env.MONGODB_URI;
 
 // Configurar Express
 const app = express();
@@ -28,7 +19,7 @@ app.use(cors());
 app.use(express.json());
 
 // Conexión a MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
+mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 }).then(() => {
@@ -49,11 +40,11 @@ app.post('/schedule-meeting', async (req, res) => {
       {
         params: {
           grant_type: 'account_credentials',
-          account_id: process.env.ZOOM_ACCOUNT_ID,
+          account_id: ZOOM_ACCOUNT_ID,
         },
         headers: {
           Authorization: `Basic ${Buffer.from(
-            `${process.env.ZOOM_CLIENT_ID}:${process.env.ZOOM_CLIENT_SECRET}`
+            `${ZOOM_CLIENT_ID}:${ZOOM_CLIENT_SECRET}`
           ).toString('base64')}`,
         },
       }
@@ -93,5 +84,5 @@ app.post('/schedule-meeting', async (req, res) => {
   }
 });
 
-// Exportar la app como función de Firebase
-exports.app = functions.https.onRequest(app);
+// Vercel solo requiere exportar la función como una función de endpoint
+module.exports = app;
